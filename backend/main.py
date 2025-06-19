@@ -1,13 +1,8 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from parser import parse_excel_file
-from categorizer import categorize_transactions
-import os
-from database import SessionLocal, engine
-from models import Transaction, Base
-from datetime import datetime
-import pandas as pd
 
+from routers import upload_file
+from database import Base, engine
 
 app = FastAPI()
 
@@ -20,38 +15,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Crée les tables
-Base.metadata.create_all(bind=engine)
+app.include_router(upload_file.router)
 
-def save_transactions_to_db(df: pd.DataFrame):
-    db = SessionLocal()
-    try:
-        for _, row in df.iterrows():
-            t = Transaction(
-                date=row["date"].date() if isinstance(row["date"], datetime) else row["date"],
-                description=row["description"],
-                amount=row["amount"],
-                category=row["category"]
-            )
-            db.add(t)
-        db.commit()
-    finally:
-        db.close()
+# Crée les tables
+# Base.metadata.create_all(bind=engine)
 
 @app.get("/ping")
 def ping():
     return {"message": "pong"}
-
-@app.post("/upload-excel")
-async def upload_excel(file: UploadFile = File(...)):
-    contents = await file.read()
-    path = f"uploads/{file.filename}"
-    with open(path, "wb") as f:
-        f.write(contents)
-
-    df = parse_excel_file(path)
-    df = categorize_transactions(df)
-
-    save_transactions_to_db(df)
-
-    return df.to_dict(orient="records")
