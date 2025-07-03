@@ -18,7 +18,7 @@ app.add_middleware(
 app.include_router(upload_file.router)
 
 # Crée les tables
-# Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 @app.get("/ping")
 def ping():
