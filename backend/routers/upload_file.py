@@ -8,6 +8,10 @@ from .parser import parse_excel_file
 from .categorizer import categorize_transactions
 from models.models import Transaction
 
+router = APIRouter(
+    prefix ='/upload',
+    tags=['Upload']
+)
 
 def save_transactions_to_db(df: pd.DataFrame):
     db = SessionLocal()
@@ -23,11 +27,6 @@ def save_transactions_to_db(df: pd.DataFrame):
         db.commit()
     finally:
         db.close()
-
-router = APIRouter(
-    prefix ='/upload',
-    tags=['Upload']
-)
 
 @router.post("/upload-excel")
 async def upload_excel(file: UploadFile = File(...)):

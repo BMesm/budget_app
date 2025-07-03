@@ -3,5 +3,3 @@ venv/
 uploads/
 .DS_Store
 __pycache__/
-*.pyc
-git
